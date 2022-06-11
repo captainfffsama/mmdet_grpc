@@ -1,4 +1,7 @@
 import base64
+from collections import defaultdict
+from typing import Union
+
 import numpy as np
 import cv2
 
@@ -8,7 +11,7 @@ from dldetection_pb2_grpc import AiServiceServicer
 
 
 class MMDetector(AiServiceServicer):
-    def __init__(self, cfg_path, ckpt_path, thr, change_label={}):
+    def __init__(self, cfg_path, ckpt_path, thr:Union[float,dict], change_label:dict={}):
         self.model = init_detector(cfg_path, ckpt_path, device="cuda:0")
         self.label_dict = {
             num: label_name
@@ -16,7 +19,18 @@ class MMDetector(AiServiceServicer):
             else change_label[label_name]
             for num, label_name in enumerate(self.model.CLASSES)
         }
-        self.thr = thr
+        if isinstance(thr,float):
+            self.thr = defaultdict(lambda: thr)
+        else:
+            if 'default' not in thr.keys() and len(thr.keys()) != len(self.label_dict.values()):
+                raise ValueError("thr args must be dict or float or have default values")
+            else:
+                if 'default' not in thr.keys():
+                    self.thr=thr
+                else:
+                    default_value=thr.pop('default')
+                    self.thr=defaultdict(lambda: default_value)
+                    self.thr.update(thr)
         print("model init done!")
 
     def _standardized_result(self, result) -> list:
@@ -35,7 +49,7 @@ class MMDetector(AiServiceServicer):
         for obj in result:
             label = obj[0]
             score = obj[1]
-            if score >= self.thr:
+            if score >= self.thr[label]:
                 after_filter_result.append((label, score, *[int(i) for i in obj[-4:]]))
         return after_filter_result
 
