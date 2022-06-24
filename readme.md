@@ -2,6 +2,7 @@
 
 # 依赖
 mmdet
+pid
 
 # 使用
 `base_config.py` 中可以配置目标检测和grpc的一些参数

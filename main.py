@@ -1,6 +1,7 @@
 import os
 import argparse
 from concurrent import futures
+from pid.decorator import pidfile
 
 import grpc
 from dldetection_pb2_grpc import  add_AiServiceServicer_to_server
@@ -21,6 +22,7 @@ def parse_args():
     args = parser.parse_args()
     return args
 
+@pidfile('mmdet_grpc')
 def main(args):
     if os.path.exists(args.cfg):
         config_manager.merge_param(args.cfg)
