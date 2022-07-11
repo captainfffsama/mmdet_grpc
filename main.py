@@ -4,6 +4,7 @@ from concurrent import futures
 from pprint import pprint
 from datetime import datetime
 
+import pid
 from pid.decorator import pidfile
 
 import grpc
@@ -25,12 +26,13 @@ def parse_args():
     args = parser.parse_args()
     return args
 
-@pidfile('mmdet_grpc')
+@pidfile(pidname='mmdet_grpc')
 def main(args):
     if os.path.exists(args.cfg):
         config_manager.merge_param(args.cfg)
     args_dict: dict = config_manager.param
     print("current time is: ", datetime.now())
+    print("pid file save in {}".format(pid.DEFAULT_PID_DIR))
 
     pprint(args_dict)
 
