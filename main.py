@@ -4,6 +4,8 @@ from concurrent import futures
 from pprint import pprint
 from datetime import datetime
 
+from pid.decorator import pidfile
+
 import grpc
 from dldetection_pb2_grpc import  add_AiServiceServicer_to_server
 
@@ -23,14 +25,15 @@ def parse_args():
     args = parser.parse_args()
     return args
 
+@pidfile('mmdet_grpc')
 def main(args):
     if os.path.exists(args.cfg):
         config_manager.merge_param(args.cfg)
-    args_dict: dict = config_manager.param 
+    args_dict: dict = config_manager.param
     print("current time is: ", datetime.now())
 
     pprint(args_dict)
-    
+
     grpc_args=args_dict['grpc_args']
     detector_params=args_dict['detector_params']
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=grpc_args['max_workers']),
