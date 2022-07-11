@@ -1,0 +1,13 @@
+detector_params:
+  cfg_path: "/root/mount/project_docker_weight/mmdet/detr_swin_t_coco_pretrained.py"
+  ckpt_path: "/root/mount/project_docker_weight/mmdet/best.pth"
+  thr: 
+    default: 0.3
+  change_label:
+    wcgz_dxdk: "wcgz"
+
+
+grpc_args:
+    host: "127.0.0.1"
+    port: "52007"
+    max_workers: 1
