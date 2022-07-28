@@ -3,6 +3,7 @@ import argparse
 from concurrent import futures
 from pprint import pprint
 from datetime import datetime
+from simecy import decrypt
 
 import pid
 from pid.decorator import pidfile
@@ -29,7 +30,8 @@ def parse_args():
 @pidfile(pidname='mmdet_grpc')
 def main(args):
     if os.path.exists(args.cfg):
-        config_manager.merge_param(args.cfg)
+        with decrypt(args.cfg,'chiebot-ai') as d:
+            config_manager.merge_param(d)
     args_dict: dict = config_manager.param
     print("current time is: ", datetime.now())
     print("pid file save in {}".format(pid.DEFAULT_PID_DIR))

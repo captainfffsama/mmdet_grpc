@@ -8,7 +8,7 @@ def run():
     # NOTE(gRPC Python Team): .close() is possible on a channel and should be
     # used in circumstances in which the with statement does not fit the needs
     # of the code.
-    with grpc.insecure_channel('localhost:7999') as channel:
+    with grpc.insecure_channel('localhost:52007') as channel:
         stub =AiServiceStub (channel)
         img_file = open(r'/home/chiebotgpuhq/MyCode/python/pytorch/mmdet_grpc/test_weight/00cb74e7b452c399721bff526eb6489c.jpg','rb')   # 二进制打开图片文件
         img_b64encode = base64.b64encode(img_file.read())  # base64编码
