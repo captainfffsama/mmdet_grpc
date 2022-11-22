@@ -12,9 +12,9 @@ from dldetection_pb2_grpc import AiServiceServicer
 
 
 class MMDetector(AiServiceServicer):
-    def __init__(self, cfg_path, ckpt_path, thr:Union[float,dict], change_label:dict={}):
+    def __init__(self, cfg_path, ckpt_path, thr:Union[float,dict], change_label:dict={},device:str='cuda:0'):
         with decrypt(cfg_path,'chiebot-ai') as cf,decrypt(ckpt_path,'chiebot-ai') as ck:
-            self.model = init_detector(cf, ck, device="cuda:0")
+            self.model = init_detector(cf, ck, device=device)
         self.label_dict = {
             num: label_name
             if label_name not in change_label

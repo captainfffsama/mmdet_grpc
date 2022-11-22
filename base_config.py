@@ -8,6 +8,7 @@ detector_params = dict(
     ckpt_path="/home/chiebotgpuhq/MyCode/python/pytorch/mmdet_grpc/test_weight/best.pth",
     thr={'default':0.3},
     change_label=dict(wcgz_dxdk="wcgz"),
+    device="cuda:0",
 ),
 
 grpc_args = dict(

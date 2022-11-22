@@ -1,10 +1,12 @@
 detector_params:
   cfg_path: "/root/mount/project_docker_weight/mmdet/detr_swin_t_coco_pretrained.py"
   ckpt_path: "/root/mount/project_docker_weight/mmdet/best.pth"
-  thr: 
+  thr:
     default: 0.3
   change_label:
     wcgz_dxdk: "wcgz"
+
+  device: "cuda:0"
 
 
 grpc_args:
