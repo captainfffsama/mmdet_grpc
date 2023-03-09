@@ -4,7 +4,7 @@ from concurrent import futures
 from pprint import pprint
 from datetime import datetime
 from simecy import decrypt
-
+import asyncio
 import pid
 from pid.decorator import pidfile
 
@@ -28,7 +28,7 @@ def parse_args():
     return args
 
 @pidfile(pidname='mmdet_grpc')
-def main(args):
+async def main(args):
     if os.path.exists(args.cfg):
         with decrypt(args.cfg,'chiebot-ai') as d:
             config_manager.merge_param(d)
@@ -40,7 +40,7 @@ def main(args):
 
     grpc_args=args_dict['grpc_args']
     detector_params=args_dict['detector_params']
-    server = grpc.server(futures.ThreadPoolExecutor(max_workers=grpc_args['max_workers']),
+    server = grpc.aio.server(futures.ThreadPoolExecutor(max_workers=grpc_args['max_workers']),
                          options=[('grpc.max_send_message_length',
                                    grpc_args['max_send_message_length']),
                                   ('grpc.max_receive_message_length',
@@ -51,14 +51,14 @@ def main(args):
     model=MMDetector(**detector_params)
     add_AiServiceServicer_to_server(model,server)
     server.add_insecure_port("{}:{}".format(grpc_args['host'],grpc_args['port']))
-    server.start()
+    await server.start()
     print('mmdet gprc server init done')
-    server.wait_for_termination()
+    await server.wait_for_termination()
 
 
 if __name__ == "__main__":
     args=parse_args()
-    main(args)
+    asyncio.run(main(args))
 
 
 
