@@ -15,8 +15,8 @@ grpc_args = dict(
     host="127.0.0.1",
     port="7999",
     max_workers=1,
-    max_send_message_length=10 * 1024 * 1024,
-    max_receive_message_length=10 * 1024 * 1024,
+    max_send_message_length=512 * 1024 * 1024,
+    max_receive_message_length=512 * 1024 * 1024,
 )
 
 )

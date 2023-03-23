@@ -7,31 +7,43 @@ import numpy as np
 import cv2
 
 from mmdet.apis import init_detector, inference_detector
-import dldetection_pb2
-from dldetection_pb2_grpc import AiServiceServicer
+from mmdet_grpc.proto import dldetection_pb2
+from mmdet_grpc.proto import dldetection_pb2_grpc as dld_pb2_grpc
+
+from mmdet_grpc.mmdet_ext import extract_feat
+from .utils import np2tensor_proto
 
 
-class MMDetector(AiServiceServicer):
-    def __init__(self, cfg_path, ckpt_path, thr:Union[float,dict], change_label:dict={},device:str='cuda:0'):
-        with decrypt(cfg_path,'chiebot-ai') as cf,decrypt(ckpt_path,'chiebot-ai') as ck:
+class MMDetector(dld_pb2_grpc.AiServiceServicer):
+
+    def __init__(self,
+                 cfg_path,
+                 ckpt_path,
+                 thr: Union[float, dict],
+                 change_label: dict = {},
+                 device: str = 'cuda:0'):
+        with decrypt(cfg_path,
+                     'chiebot-ai') as cf, decrypt(ckpt_path,
+                                                  'chiebot-ai') as ck:
             self.model = init_detector(cf, ck, device=device)
         self.label_dict = {
             num: label_name
-            if label_name not in change_label
-            else change_label[label_name]
+            if label_name not in change_label else change_label[label_name]
             for num, label_name in enumerate(self.model.CLASSES)
         }
-        if isinstance(thr,float):
+        if isinstance(thr, float):
             self.thr = defaultdict(lambda: thr)
         else:
-            if 'default' not in thr.keys() and len(thr.keys()) != len(self.label_dict.values()):
-                raise ValueError("thr args must be dict or float or have default values")
+            if 'default' not in thr.keys() and len(thr.keys()) != len(
+                    self.label_dict.values()):
+                raise ValueError(
+                    "thr args must be dict or float or have default values")
             else:
                 if 'default' not in thr.keys():
-                    self.thr=thr
+                    self.thr = thr
                 else:
-                    default_value=thr.pop('default')
-                    self.thr=defaultdict(lambda: default_value)
+                    default_value = thr.pop('default')
+                    self.thr = defaultdict(lambda: default_value)
                     self.thr.update(thr)
         print("model init done!")
 
@@ -39,10 +51,8 @@ class MMDetector(AiServiceServicer):
         new_result = []
         for idx, objs_info_matrix in enumerate(result):
             if objs_info_matrix.shape[0] > 0:
-                new_result += [
-                    (self.label_dict[idx], obj[-1], *obj[:-1])
-                    for obj in objs_info_matrix
-                ]
+                new_result += [(self.label_dict[idx], obj[-1], *obj[:-1])
+                               for obj in objs_info_matrix]
         return new_result
 
     def _filter_obj_by_thr(self, result):
@@ -52,13 +62,14 @@ class MMDetector(AiServiceServicer):
             label = obj[0]
             score = obj[1]
             if score >= self.thr[label]:
-                after_filter_result.append((label, score, *[int(i) for i in obj[-4:]]))
+                after_filter_result.append(
+                    (label, score, *[int(i) for i in obj[-4:]]))
         return after_filter_result
 
     def infer(self, img):
         result = inference_detector(self.model, img)
         new_result = self._standardized_result(result)
-        new_result=self._filter_obj_by_thr(new_result)
+        new_result = self._filter_obj_by_thr(new_result)
         return new_result
 
     def DlDetection(self, request, context):
@@ -78,5 +89,14 @@ class MMDetector(AiServiceServicer):
             obj_pro.rect.w = int(obj[4] - obj[2])
             obj_pro.rect.h = int(obj[5] - obj[3])
 
-
         return result_pro
+
+    def DlEmbeddingGet(self, request, conext):
+        img_base64 = base64.b64decode(request.imdata)
+        img_array = np.fromstring(img_base64, np.uint8)
+        img = cv2.imdecode(img_array, cv2.COLOR_BGR2RGB)
+
+        im_size =tuple(request.imsize)
+
+        result: np.ndarray = extract_feat(self.model, img, img_size=im_size)
+        return np2tensor_proto(result)
