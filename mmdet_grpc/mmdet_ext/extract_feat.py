@@ -29,6 +29,8 @@ def fix_size(cfg, img_size: Tuple[int, int]) -> dict:
         for k in cfg.keys():
             if "img_scale" == k:
                 cfg[k] = img_size
+            if "keep_ratio" ==k:
+                cfg[k]=False
             else:
                 if isinstance(cfg[k], list) or isinstance(cfg[k], dict):
                     fix_size(cfg[k], img_size)

@@ -99,4 +99,5 @@ class MMDetector(dld_pb2_grpc.AiServiceServicer):
         im_size =tuple(request.imsize)
 
         result: np.ndarray = extract_feat(self.model, img, img_size=im_size)
+        print("embedding size: ",result.shape)
         return np2tensor_proto(result)
