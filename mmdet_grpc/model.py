@@ -2,6 +2,7 @@ import base64
 from collections import defaultdict
 from typing import Union
 from simecy import decrypt
+import torch
 
 import numpy as np
 import cv2
@@ -88,7 +89,7 @@ class MMDetector(dld_pb2_grpc.AiServiceServicer):
             obj_pro.rect.y = int(obj[3])
             obj_pro.rect.w = int(obj[4] - obj[2])
             obj_pro.rect.h = int(obj[5] - obj[3])
-
+        torch.cuda.empty_cache()
         return result_pro
 
     def DlEmbeddingGet(self, request, conext):
@@ -100,4 +101,5 @@ class MMDetector(dld_pb2_grpc.AiServiceServicer):
 
         result: np.ndarray = extract_feat(self.model, img, img_size=im_size)
         print("embedding size: ",result.shape)
+        torch.cuda.empty_cache()
         return np2tensor_proto(result)

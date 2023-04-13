@@ -24,7 +24,6 @@ def parse_args():
     return args
 
 
-@pidfile(pidname='mmdet_grpc')
 async def main(args):
     if os.path.exists(args.cfg):
         with decrypt(args.cfg, 'chiebot-ai') as d:
@@ -55,7 +54,11 @@ async def main(args):
     print('mmdet gprc server init done')
     await server.wait_for_termination()
 
-
-if __name__ == "__main__":
+@pidfile(pidname='mmdet_grpc')
+def run():
     args = parse_args()
     asyncio.run(main(args))
+
+
+if __name__ == "__main__":
+    run()
