@@ -7,12 +7,13 @@ import torch
 import numpy as np
 import cv2
 
+import mmdet
 from mmdet.apis import init_detector, inference_detector
 from mmdet_grpc.proto import dldetection_pb2
 from mmdet_grpc.proto import dldetection_pb2_grpc as dld_pb2_grpc
 
 from mmdet_grpc.mmdet_ext import extract_feat
-from .utils import np2tensor_proto
+from .utils import np2tensor_proto, version_gt
 
 
 class MMDetector(dld_pb2_grpc.AiServiceServicer):
@@ -27,10 +28,12 @@ class MMDetector(dld_pb2_grpc.AiServiceServicer):
                      'chiebot-ai') as cf, decrypt(ckpt_path,
                                                   'chiebot-ai') as ck:
             self.model = init_detector(cf, ck, device=device)
+        classes = self.model.CLASSES if hasattr(
+            self.model, "CLASSES") else self.model.cfg['METAINFO']['classes']
         self.label_dict = {
             num: label_name
             if label_name not in change_label else change_label[label_name]
-            for num, label_name in enumerate(self.model.CLASSES)
+            for num, label_name in enumerate(classes)
         }
         if isinstance(thr, float):
             self.thr = defaultdict(lambda: thr)
@@ -48,13 +51,32 @@ class MMDetector(dld_pb2_grpc.AiServiceServicer):
                     self.thr.update(thr)
         print("model init done!")
 
-    def _standardized_result(self, result) -> list:
+    def _mmdet2x_standardized_result(self, result) -> list:
         new_result = []
         for idx, objs_info_matrix in enumerate(result):
             if objs_info_matrix.shape[0] > 0:
                 new_result += [(self.label_dict[idx], obj[-1], *obj[:-1])
                                for obj in objs_info_matrix]
         return new_result
+
+    def _mmdet3x_standardized_result(self, result) -> list:
+        from mmdet.structures import DetDataSample, SampleList
+        new_result = []
+        result:DetDataSample=result
+        scores = result.pred_instances.scores.detach().cpu().numpy().tolist()
+        labels = result.pred_instances.labels.detach().cpu().numpy().tolist()
+        bboxes=result.pred_instances.bboxes.detach().cpu().numpy()
+        for s,l,box in zip(scores,labels,bboxes):
+            new_result.append((self.label_dict[l],s,*(box.tolist())))
+
+        return new_result
+
+
+    def _standardized_result(self, result) -> list:
+        if not version_gt(mmdet.__version__, "3.0.0"):
+            return self._mmdet2x_standardized_result(result)
+        else:
+            return self._mmdet3x_standardized_result(result)
 
     def _filter_obj_by_thr(self, result):
         r"""按照阈值过滤目标，并将坐标整数化"""
@@ -97,9 +119,9 @@ class MMDetector(dld_pb2_grpc.AiServiceServicer):
         img_array = np.fromstring(img_base64, np.uint8)
         img = cv2.imdecode(img_array, cv2.COLOR_BGR2RGB)
 
-        im_size =tuple(request.imsize)
+        im_size = tuple(request.imsize)
 
         result: np.ndarray = extract_feat(self.model, img, img_size=im_size)
-        print("embedding size: ",result.shape)
+        print("embedding size: ", result.shape)
         torch.cuda.empty_cache()
         return np2tensor_proto(result)

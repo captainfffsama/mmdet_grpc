@@ -1,5 +1,6 @@
 test_weight/
 .vscode/
+.history/
 # create by https://github.com/iamcco/coc-gitignore (Fri May 06 2022 10:32:58 GMT+0800 (中国标准时间))
 # Python.gitignore:
 # Byte-compiled / optimized / DLL files

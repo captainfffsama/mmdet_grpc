@@ -3,7 +3,7 @@
 @Author: captainfffsama
 @Date: 2023-03-23 18:05:51
 @LastEditors: captainfffsama tuanzhangsama@outlook.com
-@LastEditTime: 2023-03-23 18:08:13
+@LastEditTime: 2023-06-26 15:13:12
 @FilePath: /mmdet_grpc/mmdet_grpc/utils.py
 @Description:
 '''
@@ -41,3 +41,10 @@ def tensor_proto2np(tensor_pb):
     np_matrix = np.array(tensor_pb.data,
                          dtype=np.float).reshape(tensor_pb.shape)
     return np_matrix
+
+def version_gt(version_current:str,version_benchmark:str="1.37.0") -> bool:
+    for i,j in zip(version_current.split("."),version_benchmark.split(".")):
+        if int(i)>=int(j):
+            return True
+
+    return False
