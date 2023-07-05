@@ -1,4 +1,3 @@
-
 [toc]
 
 # 注意
@@ -7,9 +6,17 @@
 
 # 依赖
 
-mmdet >= 3.0
+numpy
+opencv-python-headless
+torch >1.6
+torchvision
+mmdet >=3.0.0
+protobuf >= 3.15.2
+grpcio >= 1.37.0
+grpcio-tools >= 1.37.0
 pid
-simecy
+pyyaml
+simecy @ git+https://github.com/captainfffsama/simple_encryption.git@v0.2#egg=simecy
 
 # 文件加密密码
 
