@@ -99,7 +99,7 @@ class MMDetector(dld_pb2_grpc.AiServiceServicer):
         img_base64 = base64.b64decode(request.imdata)
 
         img_array = np.fromstring(img_base64, np.uint8)
-        img = cv2.imdecode(img_array, cv2.COLOR_BGR2RGB)
+        img = cv2.imdecode(img_array, cv2.COLOR_BGR2RGB|cv2.IMREAD_IGNORE_ORIENTATION)
         result = self.infer(img)
         print(result)
         result_pro = dldetection_pb2.DlResponse()
