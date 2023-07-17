@@ -3,7 +3,7 @@
 @Author: captainfffsama
 @Date: 2023-03-23 18:05:51
 @LastEditors: captainfffsama tuanzhangsama@outlook.com
-@LastEditTime: 2023-06-26 15:13:12
+@LastEditTime: 2023-07-17 16:31:46
 @FilePath: /mmdet_grpc/mmdet_grpc/utils.py
 @Description:
 '''
@@ -16,16 +16,20 @@ import cv2
 from .proto import dldetection_pb2
 
 
+def cv2imread(img_path,flag=cv2.IMREAD_COLOR|cv2.IMREAD_IGNORE_ORIENTATION):
+    img=cv2.imdecode(np.fromfile(img_path,dtype=np.uint8),flag)
+    return img
+
 def get_img(img_info):
     if os.path.isfile(img_info):
         if not os.path.exists(img_info):
             return None
         else:
-            return cv2.imread(img_info)  #ignore
+            return cv2imread(img_info,cv2._COLOR|cv2.IMREAD_IGNORE_ORIENTATION)  #ignore
     else:
         img_str = base64.b64decode(img_info)
         img_np = np.fromstring(img_str, np.uint8)
-        return cv2.imdecode(img_np, cv2.IMREAD_COLOR)
+        return cv2.imdecode(img_np, cv2.IMREAD_COLOR|cv2.IMREAD_IGNORE_ORIENTATION)
 
 
 def np2tensor_proto(np_ndarray: np.ndarray):
