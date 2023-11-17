@@ -3,6 +3,7 @@ from collections import defaultdict
 from typing import Union
 from simecy import decrypt
 import torch
+import datetime
 
 import numpy as np
 import cv2
@@ -122,6 +123,6 @@ class MMDetector(dld_pb2_grpc.AiServiceServicer):
         im_size = tuple(request.imsize)
 
         result: np.ndarray = extract_feat(self.model, img, img_size=im_size)
-        print("embedding size: ", result.shape)
+        print("{} embedding size: ".format(datetime.datetime.now()), result.shape)
         torch.cuda.empty_cache()
         return np2tensor_proto(result)
